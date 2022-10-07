@@ -8,50 +8,61 @@ const canvas = document.querySelector("canvas");
 const context = canvas.getContext("2d");
 
 //Terrain
-const terrain = {
-  spriteX: 0,
-  spriteY: 610,
-  width: 224,
-  height: 112,
-  x: 0,
-  y: canvas.height - 112,
+function createTerrain() {
+  const terrain = {
+    spriteX: 0,
+    spriteY: 610,
+    width: 224,
+    height: 112,
+    x: 0,
+    y: canvas.height - 112,
 
-  //Terrain Draw
-  draw() {
-    context.drawImage(
-      sprites,
-      terrain.spriteX,
-      terrain.spriteY,
-      terrain.width,
-      terrain.height,
-      terrain.x,
-      terrain.y,
-      terrain.width,
-      terrain.height
-    );
-    context.drawImage(
-      sprites,
-      terrain.spriteX,
-      terrain.spriteY,
-      terrain.width,
-      terrain.height,
-      terrain.x + terrain.width,
-      terrain.y,
-      terrain.width,
-      terrain.height
-    );
-  },
-};
+    update() {
+      const terrainMovement = 1;
+      const repeatAt = terrain.width / 2;
+      const movement = terrain.x - terrainMovement;
+      terrain.x = movement % repeatAt;
+    },
 
-hasCollision = (flappyBird, terrain) => {
+    //Terrain Draw
+    draw() {
+      context.drawImage(
+        sprites,
+        terrain.spriteX,
+        terrain.spriteY,
+        terrain.width,
+        terrain.height,
+        terrain.x,
+        terrain.y,
+        terrain.width,
+        terrain.height
+      );
+      context.drawImage(
+        sprites,
+        terrain.spriteX,
+        terrain.spriteY,
+        terrain.width,
+        terrain.height,
+        terrain.x + terrain.width,
+        terrain.y,
+        terrain.width,
+        terrain.height
+      );
+    },
+  };
+  return terrain;
+}
+
+function hasCollision(flappyBird, terrain) {
   const flappyBirdY = flappyBird.y + flappyBird.height;
   const terrainY = terrain.y;
 
   if (flappyBirdY >= terrainY) {
     return true;
   }
+
   return false;
-};
+}
 
 function createFlappyBird() {
   const flappyBird = {
@@ -70,7 +81,7 @@ function createFlappyBird() {
     },
 
     update() {
-      if (hasCollision(flappyBird, terrain)) {
+      if (hasCollision(flappyBird, globals.terrain)) {
         hitAudio.play();
         setTimeout(() => {
           changeToScreen(Screens.START);
@@ -176,24 +187,27 @@ const Screens = {
   START: {
     initialize() {
       globals.flappyBird = createFlappyBird();
+      globals.terrain = createTerrain();
     },
     draw() {
       background.draw();
-      terrain.draw();
+      globals.terrain.draw();
       globals.flappyBird.draw();
       getReadyMessage.draw();
     },
     click() {
       changeToScreen(Screens.GAME);
     },
-    update() {},
+    update() {
+      globals.terrain.update();
+    },
   },
 };
 
 Screens.GAME = {
   draw() {
     background.draw();
-    terrain.draw();
+    globals.terrain.draw();
     globals.flappyBird.draw();
   },
   click() {
@@ -201,6 +215,7 @@ Screens.GAME = {
   },
   update() {
     globals.flappyBird.update();
+    globals.terrain.update();
   },
 };
 
@@ -208,7 +223,6 @@ Screens.GAME = {
 function loop() {
   currentScreen.draw();
   currentScreen.update();
-
   requestAnimationFrame(loop);
 }
 
